@@ -3,11 +3,14 @@ import numpy as np
 class Board(object):
 	board_size = 15
 
-	def __init__(self):
+	def __init__(self, op_undo=False, op_swap2=False):
 		self.data = np.zeros((self.board_size, self.board_size), int)
 		self.history = []
 		self.current_player = 1
 		self.winner = 0
+		self.in_game = False
+		self.op_undo = op_undo
+		self.op_swap2 = op_swap2
 
 	@property
 	def turn(self):
@@ -23,6 +26,12 @@ class Board(object):
 	def at(self, pos):
 		assert(self.in_board(pos))
 		return self.data[tuple(pos)]
+
+	def is_start(self):
+		return self.in_game
+
+	def start(self):
+		self.in_game = True
 
 	def play(self, pos):
 		assert self.in_board(pos)
@@ -46,12 +55,12 @@ class Board(object):
 		directions = np.array([(1, -1), (1, 0), (1, 1), (0, 1)])
 		for dir in directions:
 			count = 1
-			for i in range(1, 5):
+			for i in range(1, self.board_size):
 				if not self.in_board(last_move + i * dir) or \
 					self.data[tuple(last_move + i * dir)] != self.current_player:
 					break
 				count += 1
-			for i in range(-1, -5, -1):
+			for i in range(-1, -self.board_size, -1):
 				if not self.in_board(last_move + i * dir) or \
 					self.data[tuple(last_move + i * dir)] != self.current_player:
 					break

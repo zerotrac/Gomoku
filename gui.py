@@ -1,10 +1,12 @@
 import os
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from ui.ui_board import Ui_Board
 from board import Board
 from gomoku_ai import ai_move
 import random
+from modeselection import Qdialog_modeselection
 
 class Ui(QtWidgets.QWidget):
 	boardPos = (28, 28)
@@ -93,7 +95,7 @@ class Ui(QtWidgets.QWidget):
 		chess_x = int(round((QMouseEvent.x() - self.boardPos[0]) / self.gridSize[0]))
 		chess_y = int(round((QMouseEvent.y() - self.boardPos[1]) / self.gridSize[1]))
 		pos = (chess_x, chess_y)
-		if self.board.in_board(pos) and self.board.at(pos) == 0:
+		if self.board.is_start() and self.board.in_board(pos) and self.board.at(pos) == 0:
 			self.board.play(pos)
 			self.afterPlay()
 		self.update()
@@ -122,10 +124,11 @@ class Ui(QtWidgets.QWidget):
 	def on_btnHuman_clicked(self, checked=True):
 		if checked:
 			return
-		self.board = Board()
-		self.ai = 0
-		self.setWindowTitle(QtCore.QCoreApplication.translate("Board", "Gomoku"))
-		self.update()
+		Qdialog_modeselection(self).exec()
+		#self.board = Board()
+		#self.ai = 0
+		#self.setWindowTitle(QtCore.QCoreApplication.translate("Board", "Gomoku"))
+		#self.update()
 
 	def on_btnAi_clicked(self, checked=True):
 		if checked:
@@ -145,6 +148,10 @@ class Ui(QtWidgets.QWidget):
 		if self.ai == self.board.current_player:
 			self.board.undo() # Undo two moves if play against AI
 		self.update()
+
+	@pyqtSlot()
+	def start_game(self):
+		print("start!")
 
 def gui_start():
 	import sys

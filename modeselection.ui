@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Modeselection</class>
+ <widget class="QDialog" name="Modeselection">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>450</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>模式选择</string>
+  </property>
+  <widget class="QLabel" name="l_black">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>50</y>
+     <width>60</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>黑棋：</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="l_white">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>90</y>
+     <width>60</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>白棋：</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkbox_withdraw">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>150</y>
+     <width>87</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>悔棋</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkbox_swap2">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>190</y>
+     <width>87</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Swap2</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="l_blackdelay">
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>50</y>
+     <width>60</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>延迟时间：</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="l_whitedelay">
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>90</y>
+     <width>60</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>延迟时间：</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="l_s1">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>50</y>
+     <width>60</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>s</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="l_s2">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>90</y>
+     <width>60</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>s</string>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="spinbox_black">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>50</y>
+     <width>68</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="decimals">
+    <number>1</number>
+   </property>
+   <property name="maximum">
+    <double>5.000000000000000</double>
+   </property>
+   <property name="singleStep">
+    <double>0.500000000000000</double>
+   </property>
+   <property name="value">
+    <double>1.000000000000000</double>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="spinbox_white">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>90</y>
+     <width>68</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="decimals">
+    <number>1</number>
+   </property>
+   <property name="maximum">
+    <double>5.000000000000000</double>
+   </property>
+   <property name="singleStep">
+    <double>0.500000000000000</double>
+   </property>
+   <property name="value">
+    <double>1.000000000000000</double>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="combobox_black">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>50</y>
+     <width>104</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string>玩家</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>电脑（简单的）</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>电脑（中等的）</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>电脑（疯狂的）</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QComboBox" name="combobox_white">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>90</y>
+     <width>104</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string>玩家</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>电脑（简单的）</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>电脑（中等的）</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>电脑（疯狂的）</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QPushButton" name="pbtn_ok">
+   <property name="geometry">
+    <rect>
+     <x>210</x>
+     <y>240</y>
+     <width>100</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>OK</string>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="default">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pbtn_cancel">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>240</y>
+     <width>100</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Cancel</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>pbtn_cancel</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>Modeselection</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>359</x>
+     <y>255</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>224</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
