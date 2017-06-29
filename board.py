@@ -11,11 +11,11 @@ class Board(object):
 		self.in_game = False
 
 		'''
-		off=offensive, the player who plays black
-		def=defensive, the player who plays white
+		off=offensive position, the player who plays black
+		def=defensive position, the player who plays white
 		'''
-		self.off_id, self.off_delay = off_id, off_delay
-		self.def_id, self.def_delay = def_id, def_delay
+		self.off_id, self.off_delay, self.off_score = off_id, off_delay, 0
+		self.def_id, self.def_delay, self.def_score = def_id, def_delay, 0
 		self.can_retract = can_retract
 		self.can_swap2 = can_swap2
 

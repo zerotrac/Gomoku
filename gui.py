@@ -4,7 +4,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot
 from ui.ui_board import Ui_Board
 from board import Board
-from gomoku_ai import ai_move
+#from gomoku_ai import ai_move
 import random
 from modeselection import Qdialog_modeselection
 
@@ -13,12 +13,16 @@ class Ui(QtWidgets.QWidget):
 	gridSize = (33, 33)
 	chessSize = (25, 25)
 	starSize = (5, 5)
+	blackTarget = (625, 135)
+	whiteTarget = (625, 385)
+	chessTargetSize = (20, 20)
 
 	def __init__(self, parent=None):
 		super(Ui, self).__init__(parent)
 		self.ui = Ui_Board()
 		self.ui.setupUi(self)
 		self.ui.choosePanel.hide()
+		#self.ui.btnUndo.hide()
 		self.board = Board()
 		self.ai = 0
 		self.cursor_x = -1
@@ -38,6 +42,9 @@ class Ui(QtWidgets.QWidget):
 		self.drawCursorPosition(painter, (self.cursor_x, self.cursor_y))
 		if self.board.history:
 			self.drawLastPlayPosition(painter, self.board.history[len(self.board.history) - 1])
+		#if
+		self.drawChessPieceTarget(painter, self.blackTarget, QtCore.Qt.black)
+		self.drawChessPieceTarget(painter, self.whiteTarget, QtCore.Qt.white)
 		return super().paintEvent(QPaintEvent)
 
 	def drawLastPlayPosition(self, painter, center):
@@ -70,15 +77,23 @@ class Ui(QtWidgets.QWidget):
 	def drawChessPiece(self, painter, center, color):
 		painter.setBrush(color)
 		painter.translate(center[0] * self.gridSize[0] + self.boardPos[0], center[1] * self.gridSize[1] + self.boardPos[1])
-		rect = QtCore.QRectF(-self.chessSize[0] / 2, -self.chessSize[0] / 2, self.chessSize[0], self.chessSize[0]);
-		painter.drawChord(rect, 0, 5760);
+		rect = QtCore.QRectF(-self.chessSize[0] / 2, -self.chessSize[0] / 2, self.chessSize[0], self.chessSize[0])
+		painter.drawChord(rect, 0, 5760)
+		painter.resetTransform()
+
+	def drawChessPieceTarget(self, painter, center, color):
+		painter.setBrush(color)
+		painter.translate(center[0], center[1])
+		rng = self.chessTargetSize[0]
+		rect = QtCore.QRectF(-rng / 2, -rng / 2, rng, rng)
+		painter.drawChord(rect, 0, 5760)
 		painter.resetTransform()
 
 	def drawStar(self, painter, center):
 		painter.setBrush(QtCore.Qt.black)
 		painter.translate(center[0] * self.gridSize[0] + self.boardPos[0], center[1] * self.gridSize[1] + self.boardPos[1])
-		rect = QtCore.QRectF(-self.starSize[0] / 2, -self.starSize[0] / 2, self.starSize[0], self.starSize[0]);
-		painter.drawChord(rect, 0, 5760);
+		rect = QtCore.QRectF(-self.starSize[0] / 2, -self.starSize[0] / 2, self.starSize[0], self.starSize[0])
+		painter.drawChord(rect, 0, 5760)
 		painter.resetTransform()
 
 	def mouseMoveEvent(self, QMouseEvent):
