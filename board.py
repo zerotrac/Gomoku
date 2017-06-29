@@ -3,14 +3,22 @@ import numpy as np
 class Board(object):
 	board_size = 15
 
-	def __init__(self, op_undo=False, op_swap2=False):
+	def __init__(self, off_id=0, off_delay=1.0, def_id=0, def_delay=1.0, can_retract=False, can_swap2=False):
 		self.data = np.zeros((self.board_size, self.board_size), int)
 		self.history = []
 		self.current_player = 1
 		self.winner = 0
 		self.in_game = False
-		self.op_undo = op_undo
-		self.op_swap2 = op_swap2
+
+		'''
+		off=offensive, the player who plays black
+		def=defensive, the player who plays white
+		'''
+		self.off_id, self.off_delay = off_id, off_delay
+		self.def_id, self.def_delay = def_id, def_delay
+		self.can_retract = can_retract
+		self.can_swap2 = can_swap2
+
 
 	@property
 	def turn(self):

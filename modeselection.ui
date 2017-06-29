@@ -39,7 +39,7 @@
     <string>Defensive:</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkbox_withdraw">
+  <widget class="QCheckBox" name="checkbox_retract">
    <property name="geometry">
     <rect>
      <x>40</x>
@@ -259,18 +259,18 @@
    </hints>
   </connection>
   <connection>
-   <sender>pbtn_cancel</sender>
+   <sender>pbtn_ok</sender>
    <signal>clicked(bool)</signal>
-   <receiver>checkbox_withdraw</receiver>
+   <receiver>Modeselection</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>359</x>
+     <x>259</x>
      <y>255</y>
     </hint>
     <hint type="destinationlabel">
-     <x>83</x>
-     <y>159</y>
+     <x>224</x>
+     <y>149</y>
     </hint>
    </hints>
   </connection>

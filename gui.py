@@ -1,7 +1,7 @@
 import os
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSlot
 from ui.ui_board import Ui_Board
 from board import Board
 from gomoku_ai import ai_move
@@ -125,10 +125,6 @@ class Ui(QtWidgets.QWidget):
 		if checked:
 			return
 		Qdialog_modeselection(self).exec()
-		#self.board = Board()
-		#self.ai = 0
-		#self.setWindowTitle(QtCore.QCoreApplication.translate("Board", "Gomoku"))
-		#self.update()
 
 	def on_btnAi_clicked(self, checked=True):
 		if checked:
@@ -149,9 +145,12 @@ class Ui(QtWidgets.QWidget):
 			self.board.undo() # Undo two moves if play against AI
 		self.update()
 
-	@pyqtSlot()
-	def start_game(self):
-		print("start!")
+	@pyqtSlot(int, float, int, float, bool, bool)
+	def start_game(self, off_id, off_delay, def_id, def_delay, can_retract, can_swap2):
+		self.board = Board(off_id, off_delay, def_id, def_delay, can_retract, can_swap2)
+		self.board.start()
+		self.setWindowTitle("Gomoku")
+		self.update()
 
 def gui_start():
 	import sys
