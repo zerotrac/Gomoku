@@ -11,32 +11,32 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>模式选择</string>
+   <string>Mode selection</string>
   </property>
   <widget class="QLabel" name="l_black">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>30</x>
      <y>50</y>
-     <width>60</width>
+     <width>70</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>黑棋：</string>
+    <string>Offensive:</string>
    </property>
   </widget>
   <widget class="QLabel" name="l_white">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>30</x>
      <y>90</y>
-     <width>60</width>
+     <width>70</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>白棋：</string>
+    <string>Defensive:</string>
    </property>
   </widget>
   <widget class="QCheckBox" name="checkbox_withdraw">
@@ -49,7 +49,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>悔棋</string>
+    <string>Retract</string>
    </property>
   </widget>
   <widget class="QCheckBox" name="checkbox_swap2">
@@ -75,7 +75,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>延迟时间：</string>
+    <string>Delay:</string>
    </property>
   </widget>
   <widget class="QLabel" name="l_whitedelay">
@@ -88,7 +88,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>延迟时间：</string>
+    <string>Delay:</string>
    </property>
   </widget>
   <widget class="QLabel" name="l_s1">
@@ -118,6 +118,9 @@
    </property>
   </widget>
   <widget class="QDoubleSpinBox" name="spinbox_black">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>310</x>
@@ -140,6 +143,9 @@
    </property>
   </widget>
   <widget class="QDoubleSpinBox" name="spinbox_white">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>310</x>
@@ -164,7 +170,7 @@
   <widget class="QComboBox" name="combobox_black">
    <property name="geometry">
     <rect>
-     <x>90</x>
+     <x>100</x>
      <y>50</y>
      <width>104</width>
      <height>26</height>
@@ -172,29 +178,19 @@
    </property>
    <item>
     <property name="text">
-     <string>玩家</string>
+     <string>human</string>
     </property>
    </item>
    <item>
     <property name="text">
-     <string>电脑（简单的）</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>电脑（中等的）</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>电脑（疯狂的）</string>
+     <string>naiveAI</string>
     </property>
    </item>
   </widget>
   <widget class="QComboBox" name="combobox_white">
    <property name="geometry">
     <rect>
-     <x>90</x>
+     <x>100</x>
      <y>90</y>
      <width>104</width>
      <height>26</height>
@@ -202,22 +198,12 @@
    </property>
    <item>
     <property name="text">
-     <string>玩家</string>
+     <string>human</string>
     </property>
    </item>
    <item>
     <property name="text">
-     <string>电脑（简单的）</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>电脑（中等的）</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>电脑（疯狂的）</string>
+     <string>naiveAI</string>
     </property>
    </item>
   </widget>
@@ -269,6 +255,22 @@
     <hint type="destinationlabel">
      <x>224</x>
      <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pbtn_cancel</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>checkbox_withdraw</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>359</x>
+     <y>255</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>83</x>
+     <y>159</y>
     </hint>
    </hints>
   </connection>
