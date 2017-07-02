@@ -4,10 +4,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot
 from ui.ui_board import Ui_Board
 from aithread import ai_thread
-from gomoku_ai import ai_move
 from board import Board
 import random
 from modeselection import Qdialog_modeselection
+from nextturn import QDialog_nextturn
 
 class Ui(QtWidgets.QWidget):
 	boardPos = (28, 28)
@@ -148,8 +148,17 @@ class Ui(QtWidgets.QWidget):
 		#print("afterplay")
 		if self.board.winner:
 			self.setWindowTitle(self.winning_message[self.board.winner])
-		elif self.board.current_player_type > 0:
+			if self.board.winner == 1:
+				self.board.off_score += 1
+			else:
+				self.board.def_score += 1
+			QDialog_nextturn(self).exec()
+			self.update()
+
+			return
+		if self.board.current_player_type > 0:
 			self.ai_turn()
+		else:
 		#else:
 			'''
 			if self.ui.chkSwap2.checkState() == QtCore.Qt.Checked:
@@ -186,11 +195,14 @@ class Ui(QtWidgets.QWidget):
 
 	@pyqtSlot(int, float, int, int, float, int, bool, bool)
 	def start_game(self, off_id, off_delay, off_score, def_id, def_delay, def_score, can_retract, can_swap2):
+		print("score=", off_score, def_score)
 		self.board = Board(off_id, off_delay, off_score, def_id, def_delay, def_score, can_retract, can_swap2)
 		self.board.start()
 		self.setWindowTitle("Gomoku")
 		self.ui.btnUndo.show()
 		self.ui.btnUndo.setEnabled(can_retract)
+		if off_id > 0 or def_id > 0:
+			self.ui.btnUndo.setEnabled(False)
 		self.ui.label_off.show()
 		self.ui.label_off_name.show()
 		self.ui.label_off_name.setText("human" if off_id == 0 else "naiveAI")
@@ -200,7 +212,7 @@ class Ui(QtWidgets.QWidget):
 		self.ui.label_def_name.show()
 		self.ui.label_def_name.setText("human" if off_id == 0 else "naiveAI")
 		self.ui.label_def_score.show()
-		self.ui.label_off_score.setText(str(def_score))
+		self.ui.label_def_score.setText(str(def_score))
 		self.update()
 		if self.board.current_player_type > 0:
 			self.ai_turn()
