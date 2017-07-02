@@ -3,8 +3,9 @@ os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot
 from ui.ui_board import Ui_Board
+from aithread import ai_thread
+from gomoku_ai import ai_move
 from board import Board
-#from gomoku_ai import ai_move
 import random
 from modeselection import Qdialog_modeselection
 
@@ -21,12 +22,23 @@ class Ui(QtWidgets.QWidget):
 		super(Ui, self).__init__(parent)
 		self.ui = Ui_Board()
 		self.ui.setupUi(self)
+		self.setFixedSize(650, 520)
 		self.ui.choosePanel.hide()
-		#self.ui.btnUndo.hide()
 		self.board = Board()
 		self.ai = 0
 		self.cursor_x = -1
 		self.cursor_y = -1
+		self.game_preparation()
+
+	def game_preparation(self):
+		self.board = Board()
+		self.ui.btnUndo.hide()
+		self.ui.label_off.hide()
+		self.ui.label_off_name.hide()
+		self.ui.label_off_score.hide()
+		self.ui.label_def.hide()
+		self.ui.label_def_name.hide()
+		self.ui.label_def_score.hide()
 
 	def paintEvent(self, QPaintEvent):
 		painter = QtGui.QPainter(self)
@@ -42,9 +54,11 @@ class Ui(QtWidgets.QWidget):
 		self.drawCursorPosition(painter, (self.cursor_x, self.cursor_y))
 		if self.board.history:
 			self.drawLastPlayPosition(painter, self.board.history[len(self.board.history) - 1])
-		#if
-		self.drawChessPieceTarget(painter, self.blackTarget, QtCore.Qt.black)
-		self.drawChessPieceTarget(painter, self.whiteTarget, QtCore.Qt.white)
+		if self.board.is_start():
+			if self.board.current_player == 1:
+				self.drawChessPieceTarget(painter, self.blackTarget, QtCore.Qt.black)
+			else:
+				self.drawChessPieceTarget(painter, self.whiteTarget, QtCore.Qt.white)
 		return super().paintEvent(QPaintEvent)
 
 	def drawLastPlayPosition(self, painter, center):
@@ -75,6 +89,7 @@ class Ui(QtWidgets.QWidget):
 		painter.resetTransform()
 
 	def drawChessPiece(self, painter, center, color):
+		painter.setPen(QtCore.Qt.black)
 		painter.setBrush(color)
 		painter.translate(center[0] * self.gridSize[0] + self.boardPos[0], center[1] * self.gridSize[1] + self.boardPos[1])
 		rect = QtCore.QRectF(-self.chessSize[0] / 2, -self.chessSize[0] / 2, self.chessSize[0], self.chessSize[0])
@@ -82,6 +97,7 @@ class Ui(QtWidgets.QWidget):
 		painter.resetTransform()
 
 	def drawChessPieceTarget(self, painter, center, color):
+		painter.setPen(QtCore.Qt.black)
 		painter.setBrush(color)
 		painter.translate(center[0], center[1])
 		rng = self.chessTargetSize[0]
@@ -110,7 +126,7 @@ class Ui(QtWidgets.QWidget):
 		chess_x = int(round((QMouseEvent.x() - self.boardPos[0]) / self.gridSize[0]))
 		chess_y = int(round((QMouseEvent.y() - self.boardPos[1]) / self.gridSize[1]))
 		pos = (chess_x, chess_y)
-		if self.board.is_start() and self.board.in_board(pos) and self.board.at(pos) == 0:
+		if self.board.is_start() and self.board.current_player_type == 0 and self.board.in_board(pos) and self.board.at(pos) == 0:
 			self.board.play(pos)
 			self.afterPlay()
 		self.update()
@@ -122,21 +138,29 @@ class Ui(QtWidgets.QWidget):
 		2: "White wins!"
 	}
 
+	def ai_turn(self):
+		#self.board.play(ai_move(self.board))
+		ai_thread(self).start()
+		#self.afterPlay()
+
+	@pyqtSlot()
 	def afterPlay(self):
+		#print("afterplay")
 		if self.board.winner:
 			self.setWindowTitle(self.winning_message[self.board.winner])
-			return
-		if self.ai == self.board.current_player:
-			self.board.play(ai_move(self.board))
-			self.afterPlay()
-		else:
+		elif self.board.current_player_type > 0:
+			self.ai_turn()
+		#else:
+			'''
 			if self.ui.chkSwap2.checkState() == QtCore.Qt.Checked:
 				if self.board.turn == 3:
 					self.setWindowTitle("Swap 1")
 				elif self.board.turn == 5:
 					self.setWindowTitle("Swap 2")
+			'''
+		self.update()
 
-	def on_btnHuman_clicked(self, checked=True):
+	def on_btnStart_clicked(self, checked=True):
 		if checked:
 			return
 		Qdialog_modeselection(self).exec()
@@ -160,12 +184,26 @@ class Ui(QtWidgets.QWidget):
 			self.board.undo() # Undo two moves if play against AI
 		self.update()
 
-	@pyqtSlot(int, float, int, float, bool, bool)
-	def start_game(self, off_id, off_delay, def_id, def_delay, can_retract, can_swap2):
-		self.board = Board(off_id, off_delay, def_id, def_delay, can_retract, can_swap2)
+	@pyqtSlot(int, float, int, int, float, int, bool, bool)
+	def start_game(self, off_id, off_delay, off_score, def_id, def_delay, def_score, can_retract, can_swap2):
+		self.board = Board(off_id, off_delay, off_score, def_id, def_delay, def_score, can_retract, can_swap2)
 		self.board.start()
 		self.setWindowTitle("Gomoku")
+		self.ui.btnUndo.show()
+		self.ui.btnUndo.setEnabled(can_retract)
+		self.ui.label_off.show()
+		self.ui.label_off_name.show()
+		self.ui.label_off_name.setText("human" if off_id == 0 else "naiveAI")
+		self.ui.label_off_score.show()
+		self.ui.label_off_score.setText(str(off_score))
+		self.ui.label_def.show()
+		self.ui.label_def_name.show()
+		self.ui.label_def_name.setText("human" if off_id == 0 else "naiveAI")
+		self.ui.label_def_score.show()
+		self.ui.label_off_score.setText(str(def_score))
 		self.update()
+		if self.board.current_player_type > 0:
+			self.ai_turn()
 
 def gui_start():
 	import sys

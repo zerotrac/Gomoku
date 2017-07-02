@@ -126,7 +126,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QLabel" name="label_off">
    <property name="geometry">
     <rect>
      <x>540</x>
@@ -143,7 +143,7 @@ Player</string>
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QLabel" name="label_2">
+  <widget class="QLabel" name="label_def">
    <property name="geometry">
     <rect>
      <x>540</x>
@@ -160,7 +160,7 @@ Defensive</string>
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QLabel" name="label_3">
+  <widget class="QLabel" name="label_off_name">
    <property name="geometry">
     <rect>
      <x>530</x>
@@ -176,7 +176,7 @@ Defensive</string>
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QLabel" name="label_4">
+  <widget class="QLabel" name="label_def_name">
    <property name="geometry">
     <rect>
      <x>530</x>
@@ -192,7 +192,7 @@ Defensive</string>
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QLabel" name="label_5">
+  <widget class="QLabel" name="label_off_score">
    <property name="geometry">
     <rect>
      <x>530</x>
@@ -208,7 +208,7 @@ Defensive</string>
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QLabel" name="label_6">
+  <widget class="QLabel" name="label_def_score">
    <property name="geometry">
     <rect>
      <x>530</x>

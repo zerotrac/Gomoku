@@ -3,10 +3,12 @@ import numpy as np
 class Board(object):
 	board_size = 15
 
-	def __init__(self, off_id=0, off_delay=1.0, def_id=0, def_delay=1.0, can_retract=False, can_swap2=False):
+	def __init__(self, off_id=0, off_delay=1.0, off_score=0, def_id=0, def_delay=1.0, def_score=0, can_retract=False, can_swap2=False):
 		self.data = np.zeros((self.board_size, self.board_size), int)
 		self.history = []
 		self.current_player = 1
+		self.current_player_type = 0
+		self.another_player_type = 0
 		self.winner = 0
 		self.in_game = False
 
@@ -14,11 +16,10 @@ class Board(object):
 		off=offensive position, the player who plays black
 		def=defensive position, the player who plays white
 		'''
-		self.off_id, self.off_delay, self.off_score = off_id, off_delay, 0
-		self.def_id, self.def_delay, self.def_score = def_id, def_delay, 0
+		self.off_id, self.off_delay, self.off_score = off_id, off_delay, off_score
+		self.def_id, self.def_delay, self.def_score = def_id, def_delay, def_score
 		self.can_retract = can_retract
 		self.can_swap2 = can_swap2
-
 
 	@property
 	def turn(self):
@@ -40,6 +41,8 @@ class Board(object):
 
 	def start(self):
 		self.in_game = True
+		self.current_player_type = self.off_id
+		self.another_player_type = self.def_id
 
 	def play(self, pos):
 		assert self.in_board(pos)
@@ -47,8 +50,14 @@ class Board(object):
 			return
 		self.data[pos] = self.current_player
 		self.history.append(pos)
-		winner = self.check_winner()
+		self.winner = self.check_winner()
 		self.current_player = 2 if self.current_player == 1 else 1
+		if self.current_player == 1:
+			self.current_player_type = self.off_id
+			self.another_player_type = self.def_id
+		else:
+			self.current_player_type = self.def_id
+			self.another_player_type = self.off_id
 
 	def undo(self):
 		assert self.history

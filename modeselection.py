@@ -5,7 +5,7 @@ from ui.ui_modeselection import Ui_Modeselection
 class Qdialog_modeselection(QtWidgets.QDialog):
 
 	# self-defined signals
-	game_parameters = pyqtSignal(int, float, int, float, bool, bool)
+	game_parameters = pyqtSignal(int, float, int, int, float, int, bool, bool)
 
 	def __init__(self, parent=None):
 		super(Qdialog_modeselection, self).__init__(parent)
@@ -30,8 +30,8 @@ class Qdialog_modeselection(QtWidgets.QDialog):
 	@pyqtSlot()
 	def start_game(self):
 		self.game_parameters.emit(\
-			self.ui.combobox_black.currentIndex(), self.ui.spinbox_black.value(), \
-			self.ui.combobox_white.currentIndex(), self.ui.spinbox_white.value(), \
+			self.ui.combobox_black.currentIndex(), self.ui.spinbox_black.value(), 0, \
+			self.ui.combobox_white.currentIndex(), self.ui.spinbox_white.value(), 0, \
 			self.ui.checkbox_retract.isChecked(), self.ui.checkbox_swap2.isChecked())
 
 	def make_connections(self):
