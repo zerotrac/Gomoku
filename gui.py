@@ -145,7 +145,6 @@ class Ui(QtWidgets.QWidget):
 
 	@pyqtSlot()
 	def afterPlay(self):
-		#print("afterplay")
 		if self.board.winner:
 			self.setWindowTitle(self.winning_message[self.board.winner])
 			if self.board.winner == 1:
@@ -195,7 +194,6 @@ class Ui(QtWidgets.QWidget):
 
 	@pyqtSlot(int, float, int, int, float, int, bool, bool)
 	def start_game(self, off_id, off_delay, off_score, def_id, def_delay, def_score, can_retract, can_swap2):
-		print("score=", off_score, def_score)
 		self.board = Board(off_id, off_delay, off_score, def_id, def_delay, def_score, can_retract, can_swap2)
 		self.board.start()
 		self.setWindowTitle("Gomoku")

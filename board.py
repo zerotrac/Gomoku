@@ -65,6 +65,12 @@ class Board(object):
 		self.data[last_move[0]][last_move[1]] = 0
 		self.winner = 0
 		self.current_player = 2 if self.current_player == 1 else 1
+		if self.current_player == 1:
+			self.current_player_type = self.off_id
+			self.another_player_type = self.def_id
+		else:
+			self.current_player_type = self.def_id
+			self.another_player_type = self.off_id
 
 	def check_winner(self):
 		assert self.history
