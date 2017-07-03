@@ -3,7 +3,7 @@ os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot
 from ui.ui_board import Ui_Board
-from aithread import ai_thread
+from aithread import ai_thread_mcts
 from board import Board
 import random
 from modeselection import Qdialog_modeselection
@@ -140,7 +140,7 @@ class Ui(QtWidgets.QWidget):
 
 	def ai_turn(self):
 		#self.board.play(ai_move(self.board))
-		ai_thread(self).start()
+		ai_thread_mcts(self).start()
 		#self.afterPlay()
 
 	@pyqtSlot()

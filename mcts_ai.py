@@ -6,6 +6,7 @@ import random
 
 class easyBoard:
 	board_size = 15
+	directions = np.array([(1, -1), (1, 0), (1, 1), (0, 1)])
 
 	def __init__(self, board: Board):
 		self.data = board.data.copy()
@@ -24,28 +25,55 @@ class easyBoard:
 		return False
 
 	def check_winner(self):
-		last_move = self.history[-1]
-		directions = np.array([(1, -1), (1, 0), (1, 1), (0, 1)])
-		for dir in directions:
+		#timea = time.time()
+		last_move = np.array(self.history[-1])
+		#timeb = time.time()
+		for dir in self.directions:
 			count = 1
-			for i in range(1, self.board_size):
-				if not self.in_board(last_move + i * dir) or self.data[tuple(last_move + i * dir)] != self.current_player:
+			curx, cury = last_move
+			dx, dy = dir
+			for i in range(4):
+				curx += dx
+				cury += dy
+				if not self.in_board((curx, cury)) or self.data[curx][cury] != self.current_player:
 					break
 				count += 1
-			for i in range(-1, -self.board_size, -1):
-				if not self.in_board(last_move + i * dir) or self.data[tuple(last_move + i * dir)] != self.current_player:
+				'''
+				curpos += dir
+				if not self.in_board(curpos) or self.data[tuple(curpos)] != self.current_player:
 					break
 				count += 1
+				'''
+			curx, cury = last_move
+			for i in range(4):
+				curx -= dx
+				cury -= dy
+				if not self.in_board((curx, cury)) or self.data[curx][cury] != self.current_player:
+					break
+				count += 1
+				'''
+				curpos -= dir
+				if not self.in_board(curpos) or self.data[tuple(curpos)] != self.current_player:
+					break
+				count += 1
+				'''
 			if count == 5:
 				self.winner = self.current_player
+		#timec = time.time()
 		if len(self.history) == self.board_size * self.board_size:
 			self.winner = -1
+		#timed = time.time()
+		#print(timeb-timea, timec-timeb, timed-timec)
 		return self.winner
 
 	def play(self, pos):
 		self.data[pos] = self.current_player
+		#timea = time.time()
 		self.history.append(pos)
+		#timeb = time.time()
 		self.winner = self.check_winner()
+		#timec = time.time()
+		#print("delta =", timeb-timea, timec-timeb)
 		self.current_player = 2 if self.current_player == 1 else 1
 
 	def undo(self):
@@ -56,8 +84,8 @@ class easyBoard:
 
 class mcts_node:
 	win_value = 1.0
-	draw_value = 0.3
-	lose_value = 0.0
+	draw_value = 0.0
+	lose_value = -1.0
 
 	def __init__(self, is_root, parent=None, pos=(0, 0)):
 		self.is_root = is_root
@@ -75,9 +103,15 @@ class mcts_node:
 		sz = board.board_size
 		available = np.zeros((sz, sz), int)
 		dirs = []
-		for i in range(-2, 3):
-			for j in range(-2, 3):
-				dirs.append((i, j))
+		#for i in range(-2, 3):
+		#	for j in range(-2, 3):
+		#		dirs.append((i, j))
+		#for i in range(-2, 3):
+		#	for j in range(-2, 3):
+		#		dirs.append((i, j))
+
+		#dirs = np.array(dirs)
+		dirs = np.array([(-2, 0), (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1), (2, 0)])
 		locations = []
 		for i in range(sz):
 			for j in range(sz):
@@ -100,16 +134,20 @@ class mcts_node:
 		for child in self.childs:
 			div = child.q_value / child.n_value
 			if not cur_player_black:
-				div = 1.0 - div
-			value = div + C * math.sqrt(1.96 * math.log(self.n_value) / child.n_value)
+				div = -div
+			value = div + C * math.sqrt(2 * math.log(self.n_value) / child.n_value)
 			if value > best:
 				best = value
 				bestarg = child
 		return bestarg
 
-class mcts_ai:
+	def print(self):
+		# debug
+		for child in self.childs:
+			print(child.q_value, child.n_value, child.pos, child.is_root)
 
-	def __init__(self, C, board: Board):
+class mcts_ai:
+	def __init__(self, board: Board, C=1.2):
 		self.C = C
 		self.root = mcts_node(True)
 		self.board = easyBoard(board)
@@ -122,8 +160,8 @@ class mcts_ai:
 			if expect_node.can_expand():
 				if not expect_node.childs:
 					expect_node.expand(self.board)
-				self.board.play(expect_node.childs[expect_node.which_child])
-				result = expect_node.child[expect_node.which_child]
+				self.board.play(expect_node.childs[expect_node.which_child].pos)
+				result = expect_node.childs[expect_node.which_child]
 				expect_node.which_child += 1
 				return result
 			else:
@@ -141,30 +179,49 @@ class mcts_ai:
 			return mcts_node.lose_value
 
 	def random_game(self):
+		#time_a = time.time()
 		cnt = 0
 		locations = []
 		sz = self.board.board_size
 		for i in range(sz):
 			for j in range(sz):
-				if self.board[i][j] == 0:
+				if self.board.data[i][j] == 0:
 					locations.append((i, j))
 		random.shuffle(locations)
+		#print("random game use time1 =", time.time() - time_a)
 		while self.board.winner == 0:
 			cnt += 1
 			self.board.play(locations[cnt - 1])
+		#print("random game use time2 =", time.time() - time_a)
 		result = self.decide_winner()
 		for i in range(cnt):
 			self.board.undo()
+		#print("random game use time3 =", time.time() - time_a)
 		return result
+
+	def back_up(self, node, result):
+		node.q_value += result
+		node.n_value += 1.0
+		if not node.is_root:
+			self.board.undo()
+			self.back_up(node.parent, result)
 
 	def uct_search(self):
 		expect_node = self.tree_policy(self.root)
 		result = self.random_game() if self.board.winner == 0 else self.decide_winner()
-		back
+		self.back_up(expect_node, result)
 
-
-	def ai_move(self, time_limit = 3.0):
+	def ai_move(self, time_limit=60.0):
+		if not self.board.history:
+			return 7, 7
+		jsy = 0
 		start_time = time.time()
 		while time.time() - start_time <= time_limit:
 			self.uct_search()
+			jsy += 1
 
+		optimal = self.root.best_child(self.C, True)
+		print("jsy =", jsy)
+		print("optimal =", optimal.pos)
+		self.root.print()
+		return optimal.pos
