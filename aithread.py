@@ -1,7 +1,6 @@
 from PyQt5.QtCore import pyqtSignal, QThread
-#from gomoku_ai import ai_move
 from mcts_ai import mcts_ai
-from time import sleep
+#from gomoku_ai import ai_move
 
 '''
 class ai_thread_ml(QThread):
