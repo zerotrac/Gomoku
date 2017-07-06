@@ -51,7 +51,7 @@
     <string>Start Battle</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnSettings">
+  <widget class="QPushButton" name="btnLoad">
    <property name="geometry">
     <rect>
      <x>530</x>
@@ -61,7 +61,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Settings</string>
+    <string>Load</string>
    </property>
   </widget>
   <widget class="QPushButton" name="btnExit">
@@ -222,6 +222,80 @@ Defensive</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_shiftleft10">
+   <property name="geometry">
+    <rect>
+     <x>515</x>
+     <y>260</y>
+     <width>30</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;&lt;</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_shiftleft1">
+   <property name="geometry">
+    <rect>
+     <x>545</x>
+     <y>260</y>
+     <width>30</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_shiftright10">
+   <property name="geometry">
+    <rect>
+     <x>605</x>
+     <y>260</y>
+     <width>30</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&gt;&gt;</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_shiftright1">
+   <property name="geometry">
+    <rect>
+     <x>575</x>
+     <y>260</y>
+     <width>30</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&gt;</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="line_whichstep">
+   <property name="geometry">
+    <rect>
+     <x>550</x>
+     <y>210</y>
+     <width>50</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="maxLength">
+    <number>3</number>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

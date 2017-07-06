@@ -186,6 +186,11 @@
      <string>naiveAI</string>
     </property>
    </item>
+   <item>
+    <property name="text">
+     <string>mctsAI</string>
+    </property>
+   </item>
   </widget>
   <widget class="QComboBox" name="combobox_white">
    <property name="geometry">
@@ -204,6 +209,11 @@
    <item>
     <property name="text">
      <string>naiveAI</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>mctsAI</string>
     </property>
    </item>
   </widget>

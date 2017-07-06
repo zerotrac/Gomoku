@@ -3,7 +3,8 @@ import numpy
 from board import Board
 from feature import get_features
 from keras.utils import to_categorical
-policy_network = keras.models.load_model("policy.h5")
+#policy_network = keras.models.load_model("policy.h5")
+policy_network = keras.models.load_model("reinforce.h5")
 policy_network._make_predict_function()
 #reinforces = [keras.models.load_model("reinforce1.h5"), keras.models.load_model("reinforce2.h5"), keras.models.load_model("reinforce3.h5"), keras.models.load_model("reinforce4.h5")]
 reinforces = []
@@ -11,13 +12,14 @@ value = None
 
 gauss_noise = lambda scale, shape: numpy.random.normal(0, scale, shape)
 
-def ai_move(board: Board, feature = None, policy:str = "max", version:str = "policy"):
+def ai_move(board: Board, feature = None, policy:str = "max", version:str = "reinforce"):
 	if board.turn == 1:
 		return naive_ai(board)
 	if feature is None:
 		feature = get_features(board)
 	score = lambda x:naive_score(x, board.current_player)
-	if version == "policy":
+	#if version == "policy":
+	if version == "reinforce":
 		result = policy_network.predict(numpy.array([feature])).reshape(15, 15)
 	elif version == "reinforce1":
 		result = reinforces[0].predict(numpy.array([feature])).reshape(15, 15)

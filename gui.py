@@ -1,12 +1,15 @@
 import os
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtCore import pyqtSlot, QDir
 from ui.ui_board import Ui_Board
-from aithread import ai_thread_mcts
+from aithread import ai_thread_ml
+from mcts_ai import mcts_ai
 from board import Board
 import random
 from modeselection import Qdialog_modeselection
+from time import sleep, localtime, strftime
 from nextturn import QDialog_nextturn
 
 class Ui(QtWidgets.QWidget):
@@ -17,13 +20,21 @@ class Ui(QtWidgets.QWidget):
 	blackTarget = (625, 135)
 	whiteTarget = (625, 385)
 	chessTargetSize = (20, 20)
+	player_name = ["human", "naiveAI", "mctsAI"]
 
 	def __init__(self, parent=None):
 		super(Ui, self).__init__(parent)
 		self.ui = Ui_Board()
 		self.ui.setupUi(self)
 		self.setFixedSize(650, 520)
+		self.setMouseTracking(True)
 		self.ui.choosePanel.hide()
+
+		self.ui.btn_shiftleft10.clicked[bool].connect(self.shift_left_10)
+		self.ui.btn_shiftleft1.clicked[bool].connect(self.shift_left_1)
+		self.ui.btn_shiftright1.clicked[bool].connect(self.shift_right_1)
+		self.ui.btn_shiftright10.clicked[bool].connect(self.shift_right_10)
+
 		self.board = Board()
 		self.ai = 0
 		self.cursor_x = -1
@@ -39,6 +50,11 @@ class Ui(QtWidgets.QWidget):
 		self.ui.label_def.hide()
 		self.ui.label_def_name.hide()
 		self.ui.label_def_score.hide()
+		self.ui.btn_shiftleft10.hide()
+		self.ui.btn_shiftleft1.hide()
+		self.ui.btn_shiftright1.hide()
+		self.ui.btn_shiftright10.hide()
+		self.ui.line_whichstep.hide()
 
 	def paintEvent(self, QPaintEvent):
 		painter = QtGui.QPainter(self)
@@ -49,11 +65,22 @@ class Ui(QtWidgets.QWidget):
 			painter.drawLine(self.boardPos[0], i, self.boardPos[0] + self.gridSize[0] * 14, i)
 		for i in [(3, 3), (3, 11), (11, 3), (11, 11), (7, 7)]:
 			self.drawStar(painter, i)
-		for i, _ in enumerate(self.board.history):
-			self.drawChessPiece(painter, self.board.history[i], QtCore.Qt.white if i % 2 else QtCore.Qt.black)
+		if self.ui.line_whichstep.isHidden():
+			for i, _ in enumerate(self.board.history):
+				self.drawChessPiece(painter, self.board.history[i], QtCore.Qt.white if i % 2 else QtCore.Qt.black)
+		else:
+			step = int(self.ui.line_whichstep.text())
+			for i, _ in enumerate(self.board.history):
+				if i < step:
+					self.drawChessPiece(painter, self.board.history[i], QtCore.Qt.white if i % 2 else QtCore.Qt.black)
 		self.drawCursorPosition(painter, (self.cursor_x, self.cursor_y))
 		if self.board.history:
-			self.drawLastPlayPosition(painter, self.board.history[len(self.board.history) - 1])
+			if self.ui.line_whichstep.isHidden():
+				self.drawLastPlayPosition(painter, self.board.history[len(self.board.history) - 1])
+			else:
+				step = int(self.ui.line_whichstep.text())
+				if step > 0:
+					self.drawLastPlayPosition(painter, self.board.history[step - 1])
 		if self.board.is_start():
 			if self.board.current_player == 1:
 				self.drawChessPieceTarget(painter, self.blackTarget, QtCore.Qt.black)
@@ -140,8 +167,11 @@ class Ui(QtWidgets.QWidget):
 
 	def ai_turn(self):
 		#self.board.play(ai_move(self.board))
-		ai_thread_mcts(self).start()
 		#self.afterPlay()
+		if self.board.current_player_type == 1:
+			ai_thread_ml(self).start()
+		else:
+			mcts_ai(self.board, self).start()
 
 	@pyqtSlot()
 	def afterPlay(self):
@@ -151,9 +181,18 @@ class Ui(QtWidgets.QWidget):
 				self.board.off_score += 1
 			else:
 				self.board.def_score += 1
-			QDialog_nextturn(self).exec()
 			self.update()
-
+			#QDialog_nextturn(self).exec()
+			#sleep(2)
+			fileName = "save/" + strftime("%Y%m%d_%H%M%S", localtime())
+			fileName += "_" + self.player_name[self.board.off_id] + "_" + self.player_name[self.board.def_id] + "_" + str(self.board.winner) + ".txt"
+			print(fileName)
+			opt = open(fileName, "w")
+			print(len(self.board.history), file=opt)
+			for posx, posy in self.board.history:
+				print(posx, posy, file=opt)
+			opt.close()
+			self.start_game(self.board.def_id, self.board.def_delay, self.board.def_score, self.board.off_id, self.board.off_delay, self.board.off_score, self.board.can_retract, self.board.can_swap2)
 			return
 		if self.board.current_player_type > 0:
 			self.ai_turn()
@@ -172,6 +211,35 @@ class Ui(QtWidgets.QWidget):
 		if checked:
 			return
 		Qdialog_modeselection(self).exec()
+
+	def on_btnLoad_clicked(self, checked=True):
+		if checked:
+			return
+		#print("current=", QDir.currentPath())
+		path = QFileDialog.getOpenFileName(self, "Load Game", QDir.currentPath())[0]
+		if not path:
+			return
+		#print("path=", path)
+		self.start_game(0, 0, 0, 0, 0, 0, False, False)
+		self.board.in_game = False
+
+		self.ui.label_off_score.hide()
+		self.ui.label_def_score.hide()
+		self.ui.btn_shiftleft10.show()
+		self.ui.btn_shiftleft1.show()
+		self.ui.btn_shiftright1.show()
+		self.ui.btn_shiftright10.show()
+		self.ui.line_whichstep.show()
+
+		iptFile = open(path, "r")
+		elem_count = int(iptFile.readline().strip())
+		for i in range(elem_count):
+			rd = iptFile.readline().strip().split()
+			self.board.history.append((int(rd[0]), int(rd[1])))
+		iptFile.close()
+		self.ui.line_whichstep.setText(str(len(self.board.history)))
+		self.update()
+		#print(self.board.history)
 
 	def on_btnAi_clicked(self, checked=True):
 		if checked:
@@ -194,6 +262,7 @@ class Ui(QtWidgets.QWidget):
 
 	@pyqtSlot(int, float, int, int, float, int, bool, bool)
 	def start_game(self, off_id, off_delay, off_score, def_id, def_delay, def_score, can_retract, can_swap2):
+		self.game_preparation()
 		self.board = Board(off_id, off_delay, off_score, def_id, def_delay, def_score, can_retract, can_swap2)
 		self.board.start()
 		self.setWindowTitle("Gomoku")
@@ -203,17 +272,53 @@ class Ui(QtWidgets.QWidget):
 			self.ui.btnUndo.setEnabled(False)
 		self.ui.label_off.show()
 		self.ui.label_off_name.show()
-		self.ui.label_off_name.setText("human" if off_id == 0 else "naiveAI")
+		self.ui.label_off_name.setText(self.player_name[off_id])
 		self.ui.label_off_score.show()
 		self.ui.label_off_score.setText(str(off_score))
 		self.ui.label_def.show()
 		self.ui.label_def_name.show()
-		self.ui.label_def_name.setText("human" if off_id == 0 else "naiveAI")
+		self.ui.label_def_name.setText(self.player_name[def_id])
 		self.ui.label_def_score.show()
 		self.ui.label_def_score.setText(str(def_score))
 		self.update()
 		if self.board.current_player_type > 0:
 			self.ai_turn()
+
+	@pyqtSlot()
+	def shift_left_1(self):
+		step = int(self.ui.line_whichstep.text())
+		step -= 1
+		if step < 0:
+			step = 0
+		self.ui.line_whichstep.setText(str(step))
+		self.update()
+
+	@pyqtSlot()
+	def shift_left_10(self):
+		step = int(self.ui.line_whichstep.text())
+		step -= 10
+		if step < 0:
+			step = 0
+		self.ui.line_whichstep.setText(str(step))
+		self.update()
+
+	@pyqtSlot()
+	def shift_right_1(self):
+		step = int(self.ui.line_whichstep.text())
+		step += 1
+		if step > len(self.board.history):
+			step = len(self.board.history)
+		self.ui.line_whichstep.setText(str(step))
+		self.update()
+
+	@pyqtSlot()
+	def shift_right_10(self):
+		step = int(self.ui.line_whichstep.text())
+		step += 10
+		if step > len(self.board.history):
+			step = len(self.board.history)
+		self.ui.line_whichstep.setText(str(step))
+		self.update()
 
 def gui_start():
 	import sys

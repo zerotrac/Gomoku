@@ -36,7 +36,6 @@ class ai_thread_default_policy(QThread):
 			return self.lose_value
 
 	def run(self):
-		print("thread start", self)
 		cnt = 0
 		locations = []
 		sz = self.board.board_size
@@ -51,7 +50,3 @@ class ai_thread_default_policy(QThread):
 		result = self.decide_winner()
 		with QMutexLocker(self.mutex):
 			self.parent().update_value(result)
-			print("value =", self.parent().q_value, self.parent().n_value*1.0)
-			if self.parent().n_value == self.parent().game_turn:
-				self.parent().finished = True
-		print("thread finished", self)

@@ -4,7 +4,7 @@ import numpy as np
 import time, math, random
 import keras
 from mcts_thread import score_store, ai_thread_default_policy
-from PyQt5.QtCore import QMutex
+from PyQt5.QtCore import QMutex, QThread, pyqtSignal
 
 policy_network = keras.models.load_model("policy.h5")
 policy_network._make_predict_function()
@@ -93,8 +93,11 @@ class mcts_node:
 	def can_expand(self):
 		return not len(self.childs) or self.which_child < len(self.childs)
 
-	def kth(self, result, sz, k=4):
+	def kth(self, result, sz, k=3):
 		k_argmax = np.zeros((k, 2), int)
+		for x, y in k_argmax:
+			x = -1
+			y = -1
 		k_value = np.zeros(k, float)
 		for i in range(sz):
 			for j in range(sz):
@@ -108,16 +111,139 @@ class mcts_node:
 						break
 		return k_argmax
 
+	def judgea_3(self, cnt_mid, cnt_left, block_left, cnt_right, block_right):
+		return (cnt_mid == 3 and block_left + block_right == 0 and cnt_left + cnt_right == 0) or \
+			   (cnt_mid == 2 and block_left + block_right == 0 and cnt_left + cnt_right == 1) or \
+			   (cnt_mid == 1 and block_left + block_right == 0 and ((cnt_left == 2 and cnt_right == 0) or (cnt_right == 2 and cnt_left == 0)))
+
+	def judgea_4(self, cnt_mid, cnt_left, block_left, cnt_right, block_right):
+		return (cnt_mid == 4 and block_left + block_right == 0 and cnt_left + cnt_right == 0)
+
+	def judgea_5(self, cnt_mid, cnt_left, block_left, cnt_right, block_right):
+		return (cnt_mid == 5)
+
+	def judgeb_4(self, cnt_mid, cnt_left, block_left, cnt_right, block_right):
+		return (cnt_mid == 4 and (block_left == 0 or block_right == 0) and cnt_left + cnt_right == 0) or \
+			   (cnt_mid == 3 and (cnt_left == 1 or cnt_right == 1)) or \
+			   (cnt_mid == 2 and (cnt_left == 2 or cnt_right == 2)) or \
+			   (cnt_mid == 1 and (cnt_left == 3 or cnt_right == 3))
+
+	def check_win(self, board, optional_move, other_player):
+		a_3 = 0 # huo san
+		a_4 = 0 # huo si
+		a_5 = 0 # huo wu
+		b_4 = 0 # chong si
+
+		for dir in easyBoard.directions:
+			cnt1 = 0
+			cnt2 = 0
+			block_type_1 = -100 # 0=no chess 1=opp chess
+			curx, cury = optional_move
+			dx, dy = dir
+			for i in range(5):
+				curx += dx
+				cury += dy
+				if not board.in_board((curx, cury)) or board.data[curx][cury] == other_player:
+					if block_type_1 == -100 or cnt2 != 0:
+						block_type_1 = 1
+					break
+				elif board.data[curx][cury] == 0:
+					if block_type_1 == 0:
+						break
+					block_type_1 = 0
+				else:
+					if block_type_1 == -100:
+						cnt1 += 1
+					else:
+						cnt2 += 1
+
+			cnt3 = 0
+			cnt4 = 0
+			block_type_2 = -100
+			curx, cury = optional_move
+			for i in range(5):
+				curx -= dx
+				cury -= dy
+				if not board.in_board((curx, cury)) or board.data[curx][cury] == other_player:
+					if block_type_2 == -100 or cnt4 != 0:
+						block_type_2 = 1
+					break
+				elif board.data[curx][cury] == 0:
+					if block_type_2 == 0:
+						break
+					block_type_2 = 0
+				else:
+					if block_type_2 == -100:
+						cnt3 += 1
+					else:
+						cnt4 += 1
+			#if dir[0] == 1 and dir[1] == 0:
+			#	print("dir =", cnt1, cnt2, cnt3, cnt4, block_type_1, block_type_2)
+
+			if self.judgea_3(cnt1 + cnt3 + 1, cnt2, block_type_1, cnt4, block_type_2):
+				a_3 += 1
+			elif self.judgea_4(cnt1 + cnt3 + 1, cnt2, block_type_1, cnt4, block_type_2):
+				a_4 += 1
+			elif self.judgea_5(cnt1 + cnt3 + 1, cnt2, block_type_1, cnt4, block_type_2):
+				a_5 += 1
+			elif self.judgeb_4(cnt1 + cnt3 + 1, cnt2, block_type_1, cnt4, block_type_2):
+				b_4 += 1
+
+		print("pos =", optional_move, a_3, a_4, a_5, b_4)
+		if a_5 > 0:
+			return 3
+		elif a_4 > 0 or b_4 > 1:
+			return 2
+		elif a_3 > 1 or a_3 + b_4 > 1:
+			return 1
+		else:
+			return 0
+
 	def expand(self, board: easyBoard):
 		sz = board.board_size
 
 		if self.is_root:
 			features = get_features(board)
 			result = policy_network.predict(np.array([features])).reshape(15, 15) * (board.data == 0)
-			k_argmax = self.kth(result, sz)
+			k_select = 5
+			k_argmax = self.kth(result, sz, k=k_select)
 			print(k_argmax)
+
+			value_me = []
+			value_op = []
+			vme_max = -1
+			vop_max = -1
 			for k_pos in k_argmax:
-				self.childs.append(mcts_node(False, self, tuple(k_pos)))
+				if k_pos[0] == -1 and k_pos[1] == -1:
+					continue
+				vme = self.check_win(board, k_pos, 3 - board.current_player)
+				vop = self.check_win(board, k_pos, board.current_player)
+				value_me.append(vme)
+				value_op.append(vop)
+				if vme > vme_max:
+					vme_max = vme
+				if vop > vop_max:
+					vop_max = vop
+
+			if vme_max >= vop_max:
+				for i in range(k_select):
+					if k_argmax[i][0] == -1 and k_argmax[i][1] == -1:
+						continue
+					if value_me[i] == vme_max:
+						self.childs.append(mcts_node(False, self, tuple(k_argmax[i])))
+						if len(self.childs) == 3:
+							break
+			else:
+				for i in range(k_select):
+					if k_argmax[i][0] == -1 and k_argmax[i][1] == -1:
+						continue
+					if value_op[i] == vop_max:
+						self.childs.append(mcts_node(False, self, tuple(k_argmax[i])))
+						if len(self.childs) == 3:
+							break
+			#print(k_argmax)
+			#for k_pos in k_argmax:
+			#	self.childs.append(mcts_node(False, self, tuple(k_pos)))
 		else:
 			available = np.zeros((sz, sz), int)
 			dirs = np.array([(-2, 0), (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1), (2, 0)])
@@ -155,12 +281,16 @@ class mcts_node:
 		for child in self.childs:
 			print(child.q_value, child.n_value, child.pos, child.is_root)
 
-class mcts_ai:
-	def __init__(self, board: Board, C=1.2):
+class mcts_ai(QThread):
+	trigger = pyqtSignal()
+
+	def __init__(self, board, parent=None, C=1.2):
+		super(mcts_ai, self).__init__(parent)
 		self.C = C
 		self.root = mcts_node(True)
 		self.board = easyBoard(board)
 		self.expect_winner = board.current_player
+		self.trigger.connect(self.parent().afterPlay)
 
 	def tree_policy(self, node):
 		expect_node = node
@@ -191,11 +321,15 @@ class mcts_ai:
 		game_turn = 8
 		score = score_store(game_turn)
 		mutex = QMutex()
-		for i in range(8):
-			ai_thread_default_policy(easyBoard(self.board), self.expect_winner, mutex, score).start()
-		while not score.finished:
-			pass
-		print(score.q_value, score.n_value*1.0)
+
+		new_ai_threads = []
+		for i in range(game_turn):
+			new_ai_thread = ai_thread_default_policy(easyBoard(self.board), self.expect_winner, mutex, score)
+			new_ai_thread.start()
+			new_ai_threads.append(new_ai_thread)
+		for i in range(game_turn):
+			new_ai_threads[i].wait()
+
 		return score.q_value, score.n_value * 1.0
 		'''
 		cnt = 0
@@ -227,7 +361,7 @@ class mcts_ai:
 		result = self.default_policy() if self.board.winner == 0 else self.decide_winner()
 		self.back_up(expect_node, result)
 
-	def ai_move(self, time_limit=3.0):
+	def ai_move(self, time_limit=5.0):
 		if not self.board.history:
 			return 7, 7
 		jsy = 0
@@ -239,6 +373,10 @@ class mcts_ai:
 		optimal = self.root.best_child(0, True)
 		print("jsy =", jsy)
 		print("optimal =", optimal.pos)
-		self.root.print()
-		print(self.board.data)
+		#self.root.print()
+		#print(self.board.data)
 		return optimal.pos
+
+	def run(self):
+		self.parent().board.play(self.ai_move())
+		self.trigger.emit()
