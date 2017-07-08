@@ -1,4 +1,5 @@
 import os
+import re
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
@@ -9,8 +10,10 @@ from mcts_ai import mcts_ai
 from board import Board
 import random
 from modeselection import Qdialog_modeselection
-from time import sleep, localtime, strftime
 from nextturn import QDialog_nextturn
+from swap3 import QDialog_swap3
+from swap5 import QDialog_swap5
+from swapchoose import QDialog_swapchoose
 
 class Ui(QtWidgets.QWidget):
 	boardPos = (28, 28)
@@ -27,7 +30,6 @@ class Ui(QtWidgets.QWidget):
 		self.ui = Ui_Board()
 		self.ui.setupUi(self)
 		self.setFixedSize(650, 520)
-		self.setMouseTracking(True)
 		self.ui.choosePanel.hide()
 
 		self.ui.btn_shiftleft10.clicked[bool].connect(self.shift_left_10)
@@ -81,10 +83,10 @@ class Ui(QtWidgets.QWidget):
 				step = int(self.ui.line_whichstep.text())
 				if step > 0:
 					self.drawLastPlayPosition(painter, self.board.history[step - 1])
-		if self.board.is_start():
-			if self.board.current_player == 1:
+		if self.board.is_start() or not self.ui.line_whichstep.isHidden():
+			if self.board.current_player == 1 or not self.ui.line_whichstep.isHidden():
 				self.drawChessPieceTarget(painter, self.blackTarget, QtCore.Qt.black)
-			else:
+			if self.board.current_player == 2 or not self.ui.line_whichstep.isHidden():
 				self.drawChessPieceTarget(painter, self.whiteTarget, QtCore.Qt.white)
 		return super().paintEvent(QPaintEvent)
 
@@ -169,9 +171,9 @@ class Ui(QtWidgets.QWidget):
 		#self.board.play(ai_move(self.board))
 		#self.afterPlay()
 		if self.board.current_player_type == 1:
-			ai_thread_ml(self).start()
+			ai_thread_ml(self, self.board.get_current_delay()).start()
 		else:
-			mcts_ai(self.board, self).start()
+			mcts_ai(self.board, self, self.board.get_current_delay()).start()
 
 	@pyqtSlot()
 	def afterPlay(self):
@@ -182,19 +184,27 @@ class Ui(QtWidgets.QWidget):
 			else:
 				self.board.def_score += 1
 			self.update()
-			#QDialog_nextturn(self).exec()
-			#sleep(2)
+			QDialog_nextturn(self).exec()
+			# sleep(2)
+			'''
 			fileName = "save/" + strftime("%Y%m%d_%H%M%S", localtime())
-			fileName += "_" + self.player_name[self.board.off_id] + "_" + self.player_name[self.board.def_id] + "_" + str(self.board.winner) + ".txt"
+			fileName += "_" + self.player_name[self.board.off_id] + "_" + self.player_name[
+				self.board.def_id] + "_" + str(self.board.winner) + ".txt"
 			print(fileName)
 			opt = open(fileName, "w")
 			print(len(self.board.history), file=opt)
 			for posx, posy in self.board.history:
 				print(posx, posy, file=opt)
 			opt.close()
-			self.start_game(self.board.def_id, self.board.def_delay, self.board.def_score, self.board.off_id, self.board.off_delay, self.board.off_score, self.board.can_retract, self.board.can_swap2)
+			self.start_game(self.board.def_id, self.board.def_delay, self.board.def_score, self.board.off_id,
+							self.board.off_delay, self.board.off_score, self.board.can_retract, self.board.can_swap2)
+			'''
 			return
-		if self.board.current_player_type > 0:
+		if self.board.swapped == -1 and len(self.board.history) == 3:
+			QDialog_swap3(self).exec()
+		elif self.board.swapped == 2 and len(self.board.history) == 5:
+			QDialog_swap5(self).exec()
+		elif self.board.current_player_type > 0:
 			self.ai_turn()
 		else:
 		#else:
@@ -207,6 +217,17 @@ class Ui(QtWidgets.QWidget):
 			'''
 		self.update()
 
+	@pyqtSlot(int)
+	def afterSwap(self, swapped):
+		self.board.swap_start(swapped)
+		self.ui.label_off_name.setText(self.player_name[self.board.off_id])
+		self.ui.label_off_score.setText(str(self.board.off_score))
+		self.ui.label_def_name.setText(self.player_name[self.board.def_id])
+		self.ui.label_def_score.setText(str(self.board.def_score))
+		self.update()
+		if self.board.current_player_type > 0:
+			self.ai_turn()
+
 	def on_btnStart_clicked(self, checked=True):
 		if checked:
 			return
@@ -215,11 +236,9 @@ class Ui(QtWidgets.QWidget):
 	def on_btnLoad_clicked(self, checked=True):
 		if checked:
 			return
-		#print("current=", QDir.currentPath())
-		path = QFileDialog.getOpenFileName(self, "Load Game", QDir.currentPath())[0]
+		path = QFileDialog.getOpenFileName(self, "Load Game", QDir.currentPath()+"/save")[0]
 		if not path:
 			return
-		#print("path=", path)
 		self.start_game(0, 0, 0, 0, 0, 0, False, False)
 		self.board.in_game = False
 
@@ -230,6 +249,10 @@ class Ui(QtWidgets.QWidget):
 		self.ui.btn_shiftright1.show()
 		self.ui.btn_shiftright10.show()
 		self.ui.line_whichstep.show()
+
+		names = re.findall("_([^_]+)", re.findall("/([^/]+)", path)[-1])
+		self.ui.label_off_name.setText(names[1])
+		self.ui.label_def_name.setText(names[2])
 
 		iptFile = open(path, "r")
 		elem_count = int(iptFile.readline().strip())

@@ -189,7 +189,7 @@ class mcts_node:
 			elif self.judgeb_4(cnt1 + cnt3 + 1, cnt2, block_type_1, cnt4, block_type_2):
 				b_4 += 1
 
-		print("pos =", optional_move, a_3, a_4, a_5, b_4)
+		#print("pos =", optional_move, a_3, a_4, a_5, b_4)
 		if a_5 > 0:
 			return 3
 		elif a_4 > 0 or b_4 > 1:
@@ -207,7 +207,7 @@ class mcts_node:
 			result = policy_network.predict(np.array([features])).reshape(15, 15) * (board.data == 0)
 			k_select = 5
 			k_argmax = self.kth(result, sz, k=k_select)
-			print(k_argmax)
+			#print(k_argmax)
 
 			value_me = []
 			value_op = []
@@ -284,12 +284,13 @@ class mcts_node:
 class mcts_ai(QThread):
 	trigger = pyqtSignal()
 
-	def __init__(self, board, parent=None, C=1.2):
+	def __init__(self, board, parent=None, time_limit=5.0, C=1.2):
 		super(mcts_ai, self).__init__(parent)
 		self.C = C
 		self.root = mcts_node(True)
 		self.board = easyBoard(board)
 		self.expect_winner = board.current_player
+		self.time_limit = time_limit
 		self.trigger.connect(self.parent().afterPlay)
 
 	def tree_policy(self, node):
@@ -371,12 +372,12 @@ class mcts_ai(QThread):
 			jsy += 1
 
 		optimal = self.root.best_child(0, True)
-		print("jsy =", jsy)
-		print("optimal =", optimal.pos)
+		#print("jsy =", jsy)
+		#print("optimal =", optimal.pos)
 		#self.root.print()
 		#print(self.board.data)
 		return optimal.pos
 
 	def run(self):
-		self.parent().board.play(self.ai_move())
+		self.parent().board.play(self.ai_move(self.time_limit))
 		self.trigger.emit()

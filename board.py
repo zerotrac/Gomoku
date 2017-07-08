@@ -11,6 +11,7 @@ class Board(object):
 		self.another_player_type = 0
 		self.winner = 0
 		self.in_game = False
+		self.swapped = -1  # 0=yes 1=no 2=wait
 
 		'''
 		off=offensive position, the player who plays black
@@ -20,6 +21,8 @@ class Board(object):
 		self.def_id, self.def_delay, self.def_score = def_id, def_delay, def_score
 		self.can_retract = can_retract
 		self.can_swap2 = can_swap2
+		if not can_swap2:
+			self.swapped = 3
 
 	@property
 	def turn(self):
@@ -93,3 +96,33 @@ class Board(object):
 		if len(self.history) == self.board_size * self.board_size:
 			self.winner = -1
 		return self.winner
+
+	def get_current_delay(self):
+		if self.current_player == 1:
+			return self.off_delay
+		else:
+			return self.def_delay
+
+	def swap_start(self, swapped):
+		self.swapped = swapped
+		if swapped == 0:
+			pass
+			t = self.off_id
+			self.off_id = self.def_id
+			self.def_id = t
+
+			t = self.off_delay
+			self.off_delay = self.def_delay
+			self.def_delay = t
+
+			t = self.off_score
+			self.off_score = self.def_score
+			self.def_score = t
+
+			if self.current_player == 1:
+				self.current_player_type = self.off_id
+				self.another_player_type = self.def_id
+			else:
+				self.current_player_type = self.def_id
+				self.another_player_type = self.off_id
+		print(self.off_id, self.def_id, self.current_player, self.current_player_type)

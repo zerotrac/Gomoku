@@ -1,18 +1,23 @@
 from PyQt5.QtCore import pyqtSignal, QThread
 from mcts_ai import mcts_ai
 from gomoku_ai import ai_move
-from time import sleep
+from time import sleep, time
 
 class ai_thread_ml(QThread):
 	trigger = pyqtSignal()
 
-	def __init__(self, parent):
+	def __init__(self, parent, time_limit):
 		super(ai_thread_ml, self).__init__(parent)
+		self.time_limit = time_limit
 		self.trigger.connect(self.parent().afterPlay)
 
 	def run(self):
-		sleep(0.1)
-		self.parent().board.play(ai_move(self.parent().board))
+		timea = time()
+		play_pos = ai_move(self.parent().board)
+		timeb = time()
+		if timeb - timea < self.time_limit:
+			sleep(self.time_limit - (timeb - timea))
+		self.parent().board.play(play_pos)
 		self.trigger.emit()
 
 
